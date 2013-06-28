@@ -1,15 +1,13 @@
+// Listen for tab-creation events
 chrome.tabs.onCreated.addListener(function(newTab) {
-    chrome.tabs.getAllInWindow(newTab.windowId, function(tabs) {
-        var duplicateTab = null;
-        tabs.forEach(function(otherTab) {
-            if (otherTab.id !== newTab.id && otherTab.url === newTab.url) {
-                duplicateTab = otherTab;
+    // Query all tabs with the same URL as the new tab
+    chrome.tabs.query({url: newTab.url}, function(otherTabs) {
+        otherTabs.forEach(function(otherTab) {
+            // If this tab is not the new one, switch to it and close the new one
+            if (otherTab.id !== newTab.id) {
+                chrome.tabs.update(otherTab.id, {selected: true});
+                chrome.tabs.remove(newTab.id);
             }
         });
-        if (duplicateTab) {
-            chrome.tabs.update(duplicateTab.id, {"selected": true});
-            chrome.tabs.remove(newTab.id);
-        }
     });
 });
-
